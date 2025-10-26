@@ -4,7 +4,7 @@ import { Url } from "../entities/Url";
 
 export const shortenUrl = async (req: Request, res: Response) => {
   const originalUrl = req.query.url as string;
-  const customAlias = req.query.CUSTOM_ALIAS as string | undefined;
+  const customAlias = req.query.CUSTOM_ALIAS as string;
 
   if (!originalUrl) {
     return res
@@ -38,9 +38,7 @@ export const shortenUrl = async (req: Request, res: Response) => {
     return res.json({
       alias: newUrl.custom_alias,
       url: `http://localhost:3000/u/${newUrl.custom_alias}`,
-      statistics: {
-        time_taken: "10ms",
-      },
+      statistics: { time_taken: "10ms" },
     });
   } catch (err: any) {
     console.error(err);
@@ -53,8 +51,11 @@ export const retrieveUrl = async (req: Request, res: Response) => {
 
   try {
     const urlRepo = AppDataSource.getRepository(Url);
+    const urlRecord = await urlRepo
+      .createQueryBuilder("url")
+      .where("LOWER(url.custom_alias) = LOWER(:alias)", { alias })
+      .getOne();
 
-    const urlRecord = await urlRepo.findOneBy({ custom_alias: alias });
 
     if (!urlRecord) {
       return res.status(404).json({
@@ -67,7 +68,15 @@ export const retrieveUrl = async (req: Request, res: Response) => {
     urlRecord.access_count += 1;
     await urlRepo.save(urlRecord);
 
-    return res.redirect(urlRecord.original_url);
+    let redirectUrl = urlRecord.original_url;
+    if (
+      !redirectUrl.startsWith("http://") &&
+      !redirectUrl.startsWith("https://")
+    ) {
+      redirectUrl = "http://" + redirectUrl;
+    }
+
+    return res.redirect(redirectUrl);
   } catch (err: any) {
     console.error(err);
     return res.status(500).json({ err_code: "500", description: err.message });
@@ -76,4 +85,27 @@ export const retrieveUrl = async (req: Request, res: Response) => {
 
 function generateRandomAlias(): string {
   return Math.random().toString(36).substring(2, 8);
+}
+
+export async function getTopUrls(req: Request, res: Response) {
+  try {
+    const urlRepository = AppDataSource.getRepository(Url);
+
+    const topUrls = await urlRepository
+      .createQueryBuilder("url")
+      .select("url.original_url", "original_url")
+      .addSelect("SUM(url.access_count)", "total_access_count")
+      .groupBy("url.original_url")
+      .orderBy("total_access_count", "DESC")
+      .limit(10)
+      .getRawMany();
+
+    return res.status(200).json(topUrls);
+  } catch (error) {
+    console.error("Error fetching most visited URLs:", error);
+    return res.status(500).json({
+      err_code: "500",
+      description: "Error fetching most visited URLs.",
+    });
+  }
 }
