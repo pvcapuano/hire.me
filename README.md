@@ -1,89 +1,184 @@
-# Hire.me
-Um pequeno projeto para testar suas habilidades como programador.
+# URL Shortener API
 
-## Instruções Gerais
+API simples de encurtamento de URLs desenvolvida como parte de um desafio técnico.  
+O projeto demonstra boas práticas de design de soluções, uso de ORM (TypeORM), integração com banco de dados PostgreSQL e documentação automática via Swagger.
 
-1. *Clone* este repositório
-2. Em seu *fork*, atenda os casos de usos especificados e se desejar também os bonus points
-3. Envio um e-mail para rh@bemobi.com.br com a seu Nome e endereço do repositorio.
+---
 
-## Projeto
+## Funcionalidades
 
-O projeto consiste em reproduzir um encurtador de URL's (apenas sua API), simples e com poucas funções, porém com espaço suficiente para mostrar toda a gama de desenho de soluções, escolha de componentes, mapeamento ORM, uso de bibliotecas de terceiros, uso de GIT e criatividade.
+A aplicação implementa dois casos de uso principais:
 
-O projeto consiste de dois casos de uso: 
+1. **Shorten URL** — Encurtar uma URL e gerar um alias único.
+2. **Retrieve URL** — Recuperar/redirecionar uma URL original a partir do alias encurtado.
 
-1. Shorten URL
-2. Retrieve URL
+Além disso:
 
-### 1 - Shorten URL
-![Short URL](http://i.imgur.com/MFB7VP4.jpg)
+- Permite criar um alias customizado (`CUSTOM_ALIAS`);
+- Retorna erros padronizados conforme regras do desafio;
+- Armazena e contabiliza acessos no banco de dados;
+- Fornece endpoint para listar o **Top 10 URLs mais acessadas**;
+- Documentação via Swagger em `/docs`.
 
-1. Usuario chama a API passando a URL que deseja encurtar e um parametro opcional **CUSTOM_ALIAS**
-    1. Caso o **CUSTOM_ALIAS** já exista, um erro especifico ```{ERR_CODE: 001, Description:CUSTOM ALIAS ALREADY EXISTS}``` deve ser retornado.
-    2. Toda URL criada sem um **CUSTOM_ALIAS** deve ser reduzida a um novo alias, **você deve sugerir um algoritmo para isto e o porquê.**
-    
-2. O Registro é colocado em um repositório (*Data Store*)
-3. É retornado para o cliente um resultado que contenha a URL encurtada e outros detalhes como
-    1. Quanto tempo a operação levou
-    2. URL Original
+---
 
-Exemplos (Você não precisa seguir este formato):
+## Tecnologias Utilizadas
 
-* Chamada sem CUSTOM_ALIAS
-```
-PUT http://shortener/create?url=http://www.bemobi.com.br
+| Tecnologia                                       | Uso                                    |
+| ------------------------------------------------ | -------------------------------------- |
+| **Node.js + Express**                            | Servidor da API                        |
+| **TypeORM**                                      | Mapeamento objeto-relacional           |
+| **PostgreSQL**                                   | Banco de dados                         |
+| **Swagger (swagger-ui-express + swagger-jsdoc)** | Documentação da API                    |
+| **dotenv**                                       | Gerenciamento de variáveis de ambiente |
+| **CORS**                                         | Liberação de acesso externo seguro     |
+
+---
+
+## 🧩 Estrutura de Pastas
+
+src/
+├── config/
+│ └── data-source.ts
+├── controllers/
+│ └── urlController.ts
+├── entities/
+│ └── Url.ts
+├── routes/
+│ └── urlRoutes.ts
+├── docs/
+│ └── swaggerDocs.ts
+├── app.ts
+├── server.ts
+
+## Casos de Uso
+
+### Shorten URL (`PUT /create`)
+
+O usuário envia a URL que deseja encurtar e, opcionalmente, um `CUSTOM_ALIAS`.
+
+#### Exemplos
+
+**Sem alias customizado**
+
+```bash
+PUT http://localhost:3000/create?url=https://www.bemobi.com.br
 
 {
-   "alias": "XYhakR",
-   "url": "http://shortener/u/XYhakR",
-   "statistics": {
-       "time_taken": "10ms",
-   }
+  "alias": "XYhakR",
+  "url": "http://localhost:3000/u/XYhakR",
+  "statistics": { "time_taken": "10ms" }
 }
+
 ```
 
-* Chamada com CUSTOM_ALIAS
+**Com alias customizado**
+
 ```
-PUT http://shortener/create?url=http://www.bemobi.com.br&CUSTOM_ALIAS=bemobi
+
+PUT http://localhost:3000/create?url=https://www.bemobi.com.br&CUSTOM_ALIAS=bemobi
 
 {
-   "alias": "bemobi",
-   "url": "http://shortener/u/bemobi",
-   "statistics": {
-       "time_taken": "12ms",
-   }
+  "alias": "bemobi",
+  "url": "http://localhost:3000/u/bemobi",
+  "statistics": { "time_taken": "12ms" }
 }
+
 ```
 
-* Chamada com CUSTOM_ALIAS que já existe
+**Alias já existente**
+
 ```
-PUT http://shortener/create?url=http://www.github.com&CUSTOM_ALIAS=bemobi
+
+PUT http://localhost:3000/create?url=https://www.github.com&CUSTOM_ALIAS=bemobi
 
 {
-   "alias": "bemobi",
-   "err_code": "001",
-   "description": "CUSTOM ALIAS ALREADY EXISTS"
+  "alias": "bemobi",
+  "err_code": "001",
+  "description": "CUSTOM ALIAS ALREADY EXISTS"
 }
+
 ```
 
-### 2 - Retrieve URL
-![Retrieve URL](http://i.imgur.com/f9HESb7.jpg)
+### 2 - Retrieve URL (`GET /u/:alias`)
 
-1. Usuario chama a API passando a URL que deseja acessar
-    1. Caso a **URL** não exista, um erro especifico ```{ERR_CODE: 002, Description:SHORTENED URL NOT FOUND}``` deve ser retornado.
-2. O Registro é lido de um repositório (*Data Store*)
-3. Esta tupla ou registro é mapeado para uma entidade de seu projeto
-3. É retornado para o cliente um resultado que contenha a URL final, a qual ele deve ser redirecionado automaticamente
+O usuário acessa o endpoint passando o alias.
+Caso exista, ele é redirecionado automaticamente para a URL original.
+Se não existir, é retornado o erro:
 
-## Stack Tecnológico
+```
 
-Não há requerimentos específicos para linguagens, somos poliglotas. Utilize a linguagem que você se sente mais confortável.
+{
+  "err_code": "002",
+  "description": "SHORTENED URL NOT FOUND",
+  "statistics": { "time_taken": "0ms" }
+}
 
-## Bonus Points
+```
 
-1. Crie *testcases* para todas as funcionalidades criadas
-2. Crie um *endpoint* que mostre as dez *URL's* mais acessadas 
-3. Crie um *client* para chamar sua API
-4. Faça um diagrama de sequencia da implementação feita nos casos de uso (Dica, use o https://www.websequencediagrams.com/)
-5. Monte um deploy da sua solução utilizando containers 
+### 3 - Top URLs (`GET /top`)
+
+Retorna as 10 URLs mais acessadas:
+
+```
+
+[
+  {
+    "original_url": "https://www.bemobi.com.br",
+    "total_access_count": 42
+  },
+  {
+    "original_url": "https://github.com",
+    "total_access_count": 25
+  }
+]
+
+
+```
+
+## Diagramas de Sequência
+
+![alt text](image.png)
+
+## Geração de Alias Aleatório
+
+Math.random().toString(36).substring(2, 8);
+
+## Testes Rápidos via Curl
+
+```
+# Criar URL encurtada
+curl -X PUT "http://localhost:3000/create?url=https://www.bemobi.com.br"
+
+# Criar com alias customizado
+curl -X PUT "http://localhost:3000/create?url=https://www.bemobi.com.br&CUSTOM_ALIAS=bemobi"
+
+# Recuperar URL
+curl -X GET "http://localhost:3000/u/bemobi"
+
+# Listar top 10
+curl -X GET "http://localhost:3000/top"
+
+
+```
+
+## Executando o Projeto
+
+```
+# Instalar dependências
+npm install
+
+# Criar arquivo .env com suas variáveis:
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=admin
+DB_NAME=urlshortener
+
+# Rodar servidor
+npm run dev
+
+```
+
+API disponível em http://localhost:3000
+Swagger UI: http://localhost:3000/docs
