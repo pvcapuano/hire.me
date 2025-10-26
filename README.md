@@ -37,6 +37,7 @@ Além disso:
 
 ## 🧩 Estrutura de Pastas
 
+```
 src/
 ├── config/
 │ └── data-source.ts
@@ -50,6 +51,7 @@ src/
 │ └── swaggerDocs.ts
 ├── app.ts
 ├── server.ts
+```
 
 ## Casos de Uso
 
