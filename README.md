@@ -7,7 +7,7 @@ Este repositório contém o **projeto completo do Encurtador de URLs**, dividido
 
 ---
 
-## 📂 Estrutura do Repositório
+## Estrutura do Repositório
 
 ```bash
 url-shortener/

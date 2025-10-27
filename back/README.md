@@ -35,7 +35,7 @@ Além disso:
 
 ---
 
-## 🧩 Estrutura de Pastas
+## Estrutura de Pastas
 
 ```
 src/

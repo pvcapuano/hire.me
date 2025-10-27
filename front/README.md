@@ -1,4 +1,4 @@
-# 🔗 URL Shortener Frontend
+# URL Shortener Frontend
 
 Este é o **frontend** do projeto **URL Shortener**, desenvolvido em **React + Vite + TypeScript**, com o objetivo de consumir a API de encurtamento de URLs e apresentar suas principais funcionalidades de forma simples e funcional.
 
@@ -22,7 +22,7 @@ O frontend permite interagir com as três operações principais da API:
 
 ---
 
-## 🧠 Arquitetura
+## Arquitetura
 
 A aplicação foi estruturada com base em **componentização** e **hooks personalizados (custom hooks)** para melhor organização, separando lógica de apresentação.
 
