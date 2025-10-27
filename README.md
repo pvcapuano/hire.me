@@ -10,7 +10,7 @@ Este repositório contém o **projeto completo do Encurtador de URLs**, dividido
 ## Estrutura do Repositório
 
 ```bash
-url-shortener/
+hire.me/
 ├── back/     # API e lógica de encurtamento de URLs
 ├── front/    # Interface web para interação com a API
 └── README.md    # (este arquivo)
